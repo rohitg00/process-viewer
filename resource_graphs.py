@@ -81,7 +81,17 @@ class ResourceHistory:
                             height_at_x = (data_value - min_value) * scale
                             
                             if graph_height - y <= height_at_x:
-                                line += "█"
+                                # Use different characters for gradient effect
+                                if height_at_x >= graph_height * 0.8:
+                                    line += "█"  # Full block for high values
+                                elif height_at_x >= graph_height * 0.6:
+                                    line += "▓"  # Dark shade for medium-high values
+                                elif height_at_x >= graph_height * 0.4:
+                                    line += "▒"  # Medium shade for medium values
+                                elif height_at_x >= graph_height * 0.2:
+                                    line += "░"  # Light shade for low values
+                                else:
+                                    line += "·"  # Dot for very low values
                             else:
                                 line += " "
                         else:

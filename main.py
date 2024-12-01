@@ -13,11 +13,17 @@ def main(stdscr):
     curses.curs_set(0)
     stdscr.timeout(1000)  # Set input timeout for updates
 
-    # Initialize color pairs
-    curses.init_pair(1, curses.COLOR_WHITE, -1)
-    curses.init_pair(2, curses.COLOR_GREEN, -1)
-    curses.init_pair(3, curses.COLOR_YELLOW, -1)
-    curses.init_pair(4, curses.COLOR_RED, -1)
+    # Initialize color pairs for purple theme
+    curses.init_pair(1, curses.COLOR_MAGENTA, -1)  # Light purple text
+    curses.init_pair(2, 213, -1)  # Bright purple text
+    curses.init_pair(3, 147, -1)  # Medium purple text
+    curses.init_pair(4, 54, -1)   # Dark purple text
+    
+    # Try to set background color if supported
+    try:
+        curses.init_pair(5, curses.COLOR_WHITE, 54)  # White text on dark purple background
+    except curses.error:
+        pass
 
     # Initialize components
     process_manager = ProcessManager()

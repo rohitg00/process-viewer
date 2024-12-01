@@ -94,15 +94,15 @@ class UserInterface:
 
         # Debug output for process count
         process_count = len(processes)
-        self.safe_addstr(self.header_height, 2, f"Total processes: {process_count}", curses.color_pair(1))
+        self.safe_addstr(self.header_height, 2, f"Total processes: {process_count}", curses.color_pair(2))
 
         # Calculate proper starting position after resource graphs
         if self.compact_mode:
-            start_y = max_height // 3  # Allocate top third for graphs in compact mode
+            start_y = max_height // 4  # Reduce space allocation for graphs in compact mode
             list_height = max_height - start_y - self.status_height - self.help_height
         else:
-            start_y = self.header_height + self.graph_height * 2 + 3  # Account for both graphs and spacing
-            list_height = max_height - start_y - self.status_height - self.help_height - 2
+            start_y = self.header_height + (self.graph_height * 2)  # Remove extra spacing
+            list_height = max_height - start_y - self.status_height - self.help_height
             
         tree_prefix = "  " if not tree_view else "├─ "
         
