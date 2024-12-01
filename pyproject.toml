@@ -1,8 +1,24 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
-name = "repl-nix-terminalviz"
+name = "process-viewer"
 version = "0.1.0"
-description = "Add your description here"
+description = "A terminal-based process visualization tool providing real-time system process monitoring and management capabilities. Features comprehensive process monitoring with detailed metrics, interactive filtering, and search functionality in an adaptive terminal interface."
+readme = "README.md"
+authors = [
+    { name = "Rohit Ghumare", email = "ghumare64@gmail.com" }
+]
 requires-python = ">=3.11"
 dependencies = [
     "psutil>=6.1.0",
+    "curses-menu>=0.7.0",
+    "hatch",
 ]
+
+[project.scripts]
+process-viewer = "main:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["*.py"]
