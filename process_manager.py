@@ -72,3 +72,16 @@ class ProcessManager:
             }
         except (psutil.NoSuchProcess, psutil.AccessDenied):
             return None
+
+    def terminate_process(self, pid):
+        """Terminate a process by PID"""
+        try:
+            process = psutil.Process(pid)
+            process.terminate()
+            return True, "Process terminated successfully"
+        except psutil.NoSuchProcess:
+            return False, "Process not found"
+        except psutil.AccessDenied:
+            return False, "Permission denied: Cannot terminate process"
+        except Exception as e:
+            return False, f"Error terminating process: {str(e)}"

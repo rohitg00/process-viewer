@@ -7,6 +7,11 @@ def handle_input(key, state):
     sort_by = state['sort_by']
     filters = state['filters']
     input_mode = state['input_mode']
+    
+    # Get the current process if needed
+    current_process = None
+    if process_count > 0 and selected_idx >= 0:
+        current_process = state.get('processes', [])[selected_idx] if state.get('processes') else None
 
     # Navigation
     if input_mode == 'normal':
@@ -14,6 +19,12 @@ def handle_input(key, state):
             state['selected_idx'] = selected_idx - 1
         elif key == curses.KEY_DOWN and selected_idx < process_count - 1:
             state['selected_idx'] = selected_idx + 1
+        elif key == ord('\n'):  # Enter key
+            if current_process:
+                state['input_mode'] = 'details'
+        elif key == ord('x'):
+            if current_process:
+                state['input_mode'] = 'confirm_terminate'
         
         # Quit
         elif key in (ord('q'), ord('Q')):
@@ -61,7 +72,9 @@ def handle_input(key, state):
             state['input_mode'] = 'normal'
         elif key == ord('\n'):  # Enter
             state['input_mode'] = 'normal'
-        elif input_mode == 'filter_1':  # Status filter
+        
+        # Status filter
+        elif input_mode == 'filter_1':
             if key in (ord('r'), ord('s'), ord('t'), ord('z')):
                 state['filters']['status'] = {
                     'r': 'running',
@@ -70,29 +83,50 @@ def handle_input(key, state):
                     'z': 'zombie'
                 }[chr(key)]
                 state['input_mode'] = 'normal'
-        elif input_mode in ('filter_2', 'filter_3'):  # CPU/Memory threshold
+        
+        # CPU/Memory threshold filters
+        elif input_mode in ('filter_2', 'filter_3'):
             if key in (curses.KEY_BACKSPACE, 127):
-                filter_value = filters.get('min_cpu' if input_mode == 'filter_2' else 'min_memory', '')
-                if filter_value:
-                    filter_value = str(filter_value)[:-1]
+                filter_key = 'min_cpu' if input_mode == 'filter_2' else 'min_memory'
+                current = filters.get(filter_key, '')
+                if current:
+                    new_value = str(current)[:-1]
                     try:
-                        value = float(filter_value) if filter_value else None
-                        if input_mode == 'filter_2':
-                            state['filters']['min_cpu'] = value
-                        else:
-                            state['filters']['min_memory'] = value
+                        state['filters'][filter_key] = float(new_value) if new_value else None
                     except ValueError:
                         pass
             elif 48 <= key <= 57 or key == ord('.'):  # Numbers and decimal point
-                current = filters.get('min_cpu' if input_mode == 'filter_2' else 'min_memory', '')
+                filter_key = 'min_cpu' if input_mode == 'filter_2' else 'min_memory'
+                current = filters.get(filter_key, '')
                 new_value = str(current if current is not None else '') + chr(key)
                 try:
                     value = float(new_value)
-                    if input_mode == 'filter_2':
-                        state['filters']['min_cpu'] = value
-                    else:
-                        state['filters']['min_memory'] = value
+                    state['filters'][filter_key] = value
                 except ValueError:
                     pass
+        
+        # Username filter
+        elif input_mode == 'filter_4':
+            if key in (curses.KEY_BACKSPACE, 127):
+                current = filters.get('user_filter', '')
+                state['filters']['user_filter'] = current[:-1] if current else None
+            elif 32 <= key <= 126:  # Printable characters
+                current = filters.get('user_filter', '')
+                state['filters']['user_filter'] = (current if current else '') + chr(key)
+    
+    # Process details mode
+    elif input_mode == 'details':
+        if key in (27, ord('q')):  # ESC or 'q'
+            state['input_mode'] = 'normal'
+    
+    # Confirmation dialog mode
+    elif input_mode == 'confirm_terminate':
+        if key == ord('y'):
+            if current_process:
+                success, message = state['process_manager'].terminate_process(current_process['pid'])
+                state['status_message'] = message
+            state['input_mode'] = 'normal'
+        elif key in (ord('n'), 27):  # 'n' or ESC
+            state['input_mode'] = 'normal'
 
     return state

@@ -121,7 +121,7 @@ class UserInterface:
 
     def draw_help(self, width):
         max_y = self.stdscr.getmaxyx()[0]
-        help_text = "q:Quit | ↑/↓:Navigate | s:Sort | /:Search | f:Filter | c:Clear Filters | Enter:Details"
+        help_text = "q:Quit | ↑/↓:Navigate | s:Sort | /:Search | f:Filter | c:Clear | Enter:Details | x:Terminate"
         self.safe_addstr(max_y - 1, 0, f"{help_text:<{width}}", curses.color_pair(1))
         
     def draw_filter_menu(self):
@@ -157,3 +157,64 @@ class UserInterface:
             self.safe_addstr(y, x, message, curses.color_pair(4) | curses.A_BOLD)
         except curses.error:
             pass
+
+    def draw_process_details(self, process_details, width):
+        """Draw detailed process information"""
+        if not process_details:
+            self.draw_error("Process not found or access denied")
+            return
+
+        height, _ = self.stdscr.getmaxyx()
+        start_y = height // 4
+        start_x = width // 6
+        box_width = int(width * 2/3)
+
+        # Draw border
+        for y in range(start_y, start_y + 10):
+            self.safe_addstr(y, start_x, "│", curses.color_pair(1))
+            self.safe_addstr(y, start_x + box_width, "│", curses.color_pair(1))
+        
+        self.safe_addstr(start_y, start_x, "┌" + "─" * (box_width - 2) + "┐", curses.color_pair(1))
+        self.safe_addstr(start_y + 9, start_x, "└" + "─" * (box_width - 2) + "┘", curses.color_pair(1))
+
+        # Draw title
+        title = f" Process Details: {process_details['name']} (PID: {process_details['pid']}) "
+        self.safe_addstr(start_y, start_x + (box_width - len(title)) // 2, title, curses.color_pair(2) | curses.A_BOLD)
+
+        # Draw details
+        details = [
+            f"Status: {process_details['status']}",
+            f"CPU Usage: {process_details['cpu_percent']:.1f}%",
+            f"Memory Usage: {process_details['memory_percent']:.1f}%",
+            f"Created: {process_details['create_time']}",
+            f"User: {process_details['username']}",
+            f"Command: {process_details['cmdline'][:box_width-20]}"
+        ]
+
+        for i, detail in enumerate(details, 1):
+            self.safe_addstr(start_y + i + 1, start_x + 2, detail, curses.color_pair(1))
+
+        # Draw exit message
+        self.safe_addstr(start_y + 8, start_x + 2, "Press 'q' or ESC to return", curses.color_pair(3))
+
+    def draw_confirmation_dialog(self, pid):
+        """Draw a confirmation dialog for process termination"""
+        height, width = self.stdscr.getmaxyx()
+        dialog_height = 5
+        dialog_width = 40
+        start_y = (height - dialog_height) // 2
+        start_x = (width - dialog_width) // 2
+
+        # Draw border
+        for y in range(start_y, start_y + dialog_height):
+            self.safe_addstr(y, start_x, "│", curses.color_pair(4))
+            self.safe_addstr(y, start_x + dialog_width, "│", curses.color_pair(4))
+        
+        self.safe_addstr(start_y, start_x, "┌" + "─" * (dialog_width - 2) + "┐", curses.color_pair(4))
+        self.safe_addstr(start_y + dialog_height - 1, start_x, "└" + "─" * (dialog_width - 2) + "┘", curses.color_pair(4))
+
+        # Draw message
+        message = f"Terminate process {pid}?"
+        self.safe_addstr(start_y + 1, start_x + (dialog_width - len(message)) // 2, message, curses.color_pair(4) | curses.A_BOLD)
+        confirm_text = "Press 'y' to confirm, 'n' to cancel"
+        self.safe_addstr(start_y + 3, start_x + (dialog_width - len(confirm_text)) // 2, confirm_text, curses.color_pair(1))

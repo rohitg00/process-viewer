@@ -32,7 +32,10 @@ def main(stdscr):
             'min_memory': None,
             'user_filter': None
         },
-        'process_count': 0
+        'process_count': 0,
+        'process_manager': process_manager,
+        'processes': [],
+        'status_message': ""
     }
     running = True
     last_size = stdscr.getmaxyx()
@@ -71,6 +74,7 @@ def main(stdscr):
                 user_filter=state['filters']['user_filter']
             )
             
+            state['processes'] = processes
             state['process_count'] = len(processes)
 
             # Ensure selected index is within bounds
