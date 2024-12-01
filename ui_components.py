@@ -8,14 +8,24 @@ class UserInterface:
         self.status_height = 1
         self.help_height = 1
         self.min_width = 80
-        self.min_height = 20
+        self.min_height = 15
+        self.debug_mode = False
+        self.compact_mode = False
 
-    def check_terminal_size(self) -> Tuple[bool, str]:
-        """Check if terminal size is adequate"""
+    def check_terminal_size(self) -> Tuple[bool, str, bool]:
+        """Check if terminal size is adequate and determine display mode"""
         height, width = self.stdscr.getmaxyx()
+        debug_info = f"Terminal size: {width}x{height}"
+        
+        if height < 10 or width < 40:  # Absolute minimum requirements
+            return False, f"Terminal too small. Minimum size: 40x10, Current: {width}x{height}", False
+            
         if height < self.min_height or width < self.min_width:
-            return False, f"Terminal too small. Min size: {self.min_width}x{self.min_height}, Current: {width}x{height}"
-        return True, ""
+            self.compact_mode = True
+            return True, f"Running in compact mode. {debug_info}", True
+            
+        self.compact_mode = False
+        return True, debug_info, False
 
     def safe_addstr(self, y: int, x: int, text: str, attr=0):
         """Safely add string to screen with bounds checking"""
@@ -52,9 +62,12 @@ class UserInterface:
             return
 
     def draw_process_list(self, processes, selected_idx, max_rows):
-        start_y = self.header_height + 1
-        # Adjust list height to leave space for status and help
-        list_height = max_rows - self.header_height - self.status_height - self.help_height - 2
+        if self.compact_mode:
+            start_y = 1  # Reduce header space in compact mode
+            list_height = max_rows - 3  # Leave minimal space for status and help
+        else:
+            start_y = self.header_height + 1
+            list_height = max_rows - self.header_height - self.status_height - self.help_height - 2
         
         # Calculate visible window for processes
         window_start = max(0, min(selected_idx - list_height // 2, len(processes) - list_height))

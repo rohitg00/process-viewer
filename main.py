@@ -42,15 +42,20 @@ def main(stdscr):
 
     while running:
         # Check terminal size
-        size_ok, error_msg = ui.check_terminal_size()
+        size_ok, debug_msg, is_compact = ui.check_terminal_size()
         if not size_ok:
             stdscr.clear()
-            ui.draw_error(error_msg)
+            ui.draw_error(debug_msg)
             stdscr.refresh()
             key = stdscr.getch()
             if key in (ord('q'), ord('Q')):
                 running = False
             continue
+        
+        # Show debug information if enabled
+        if ui.debug_mode:
+            stdscr.addstr(0, 0, debug_msg, curses.color_pair(1))
+            stdscr.refresh()
 
         # Handle window resize
         current_size = stdscr.getmaxyx()
