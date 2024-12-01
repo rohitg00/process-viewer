@@ -46,6 +46,9 @@ def handle_input(key, state):
             state['input_mode'] = 'filter_menu'
         elif key == ord('c'):
             state['filters'] = {'status': None, 'min_cpu': None, 'min_memory': None, 'user_filter': None}
+        elif key == ord('t'):
+            state['tree_view'] = not state['tree_view']
+            state['selected_idx'] = 0  # Reset selection when switching views
     
     # Search input mode
     elif input_mode == 'search':

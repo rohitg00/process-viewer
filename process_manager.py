@@ -5,16 +5,46 @@ class ProcessManager:
     def __init__(self):
         self.process_list = []
 
-    def get_processes(self, sort_by='cpu'):
+    def get_processes(self, sort_by='cpu', tree_view=False):
         processes = []
-        for proc in psutil.process_iter(['pid', 'name', 'cpu_percent', 'memory_percent', 'status']):
+        process_dict = {}
+        
+        for proc in psutil.process_iter(['pid', 'name', 'cpu_percent', 'memory_percent', 'status', 'ppid']):
             try:
                 pinfo = proc.info
                 pinfo['cpu_percent'] = proc.cpu_percent()
                 pinfo['memory_percent'] = proc.memory_percent()
-                processes.append(pinfo)
+                pinfo['ppid'] = proc.ppid()
+                pinfo['level'] = 0  # Will be set properly if tree_view is enabled
+                pinfo['children'] = []
+                process_dict[pinfo['pid']] = pinfo
             except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
                 continue
+        
+        if tree_view:
+            # Build process tree
+            for pid, pinfo in process_dict.items():
+                ppid = pinfo['ppid']
+                if ppid in process_dict:
+                    process_dict[ppid]['children'].append(pid)
+            
+            # Calculate levels and create tree-ordered list
+            def add_to_tree(pid, level=0):
+                if pid not in process_dict:
+                    return
+                process = process_dict[pid]
+                process['level'] = level
+                processes.append(process)
+                for child_pid in sorted(process['children']):
+                    add_to_tree(child_pid, level + 1)
+            
+            # Start with init process (usually PID 1) and processes without parent
+            root_pids = [pid for pid, proc in process_dict.items() 
+                        if proc['ppid'] not in process_dict or pid == 1]
+            for pid in sorted(root_pids):
+                add_to_tree(pid)
+        else:
+            processes = list(process_dict.values())
 
         # Sort processes based on criteria
         if sort_by == 'cpu':

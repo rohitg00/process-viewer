@@ -26,6 +26,7 @@ def main(stdscr):
         'search_term': "",
         'sort_by': "cpu",
         'input_mode': "normal",
+        'tree_view': True,
         'filters': {
             'status': None,
             'min_cpu': None,
@@ -69,7 +70,7 @@ def main(stdscr):
             max_y, max_x = stdscr.getmaxyx()
 
             # Update process list
-            processes = process_manager.get_processes(state['sort_by'])
+            processes = process_manager.get_processes(state['sort_by'], state['tree_view'])
             processes = process_manager.filter_processes(
                 processes,
                 search_term=state['search_term'],
@@ -94,7 +95,7 @@ def main(stdscr):
                     raise curses.error(f"Terminal too small. Min size: {ui.min_width}x{ui.min_height}")
                 
                 ui.draw_header(max_x)
-                ui.draw_process_list(processes, state['selected_idx'], max_y)
+                ui.draw_process_list(processes, state['selected_idx'], max_y, state['tree_view'])
                 ui.draw_status_bar(max_x, state)
                 ui.draw_help(max_x)
                 

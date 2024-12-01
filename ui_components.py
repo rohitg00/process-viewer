@@ -61,13 +61,15 @@ class UserInterface:
         except curses.error:
             return
 
-    def draw_process_list(self, processes, selected_idx, max_rows):
+    def draw_process_list(self, processes, selected_idx, max_rows, tree_view=True):
         if self.compact_mode:
             start_y = 1  # Reduce header space in compact mode
             list_height = max_rows - 3  # Leave minimal space for status and help
         else:
             start_y = self.header_height + 1
             list_height = max_rows - self.header_height - self.status_height - self.help_height - 2
+            
+        tree_prefix = "  " if not tree_view else "├─ "
         
         # Calculate visible window for processes
         window_start = max(0, min(selected_idx - list_height // 2, len(processes) - list_height))
@@ -83,8 +85,11 @@ class UserInterface:
                 break
 
             try:
+                indent = "  " * proc.get('level', 0) if tree_view else ""
+                prefix = tree_prefix if proc.get('level', 0) > 0 else ""
+                name_str = f"{indent}{prefix}{proc['name']}"
                 line = f"{proc['pid']:>8} {proc['cpu_percent']:>7.1f} {proc['memory_percent']:>7.1f} "
-                line += f"{proc['status']:>10} {proc['name']:<20}"
+                line += f"{proc['status']:>10} {name_str:<40}"
 
                 attr = curses.color_pair(3) | curses.A_REVERSE if idx + window_start == selected_idx else curses.color_pair(1)
                 self.safe_addstr(start_y + idx + 1, 2, line, attr)
@@ -134,7 +139,7 @@ class UserInterface:
 
     def draw_help(self, width):
         max_y = self.stdscr.getmaxyx()[0]
-        help_text = "q:Quit | ↑/↓:Navigate | s:Sort | /:Search | f:Filter | c:Clear | Enter:Details | x:Terminate"
+        help_text = "q:Quit | ↑/↓:Navigate | s:Sort | /:Search | f:Filter | c:Clear | t:Tree | Enter:Details | x:Terminate"
         self.safe_addstr(max_y - 1, 0, f"{help_text:<{width}}", curses.color_pair(1))
         
     def draw_filter_menu(self):
