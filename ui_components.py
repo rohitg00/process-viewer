@@ -50,9 +50,9 @@ class UserInterface:
             available_width = width - 8  # Leave margin for labels
             available_height = height - start_y - self.status_height - self.help_height
             
-            # Calculate actual graph dimensions
-            actual_width = max(self.min_graph_width, min(self.graph_width, available_width))
-            actual_height = max(self.min_graph_height, min(self.graph_height, (available_height - 2) // 2))
+            # Calculate actual graph dimensions with improved spacing
+            actual_width = max(self.min_graph_width, min(self.graph_width, available_width - 2))
+            actual_height = max(self.min_graph_height, min(self.graph_height, (available_height - 3) // 2))  # Extra space between graphs
             
             # Skip drawing graphs if terminal is too small
             if available_width < self.min_graph_width or available_height < (self.min_graph_height * 2 + 2):
@@ -114,7 +114,7 @@ class UserInterface:
         headers = f"{'PID':>8} {'CPU%':>7} {'MEM%':>7} {'STATUS':>10} {'NAME':<20}"
         self.safe_addstr(start_y, 2, headers, curses.color_pair(1) | curses.A_BOLD)
 
-        # Draw processes
+        # Draw processes with enhanced visual style
         for idx, proc in enumerate(visible_processes):
             if start_y + idx + 1 >= max_height - 2:  # Leave space for status and help
                 break
@@ -123,10 +123,19 @@ class UserInterface:
                 indent = "  " * proc.get('level', 0) if tree_view else ""
                 prefix = tree_prefix if proc.get('level', 0) > 0 else ""
                 name_str = f"{indent}{prefix}{proc['name']}"
+                
+                # Format process information with proper spacing
                 line = f"{proc['pid']:>8} {proc['cpu_percent']:>7.1f} {proc['memory_percent']:>7.1f} "
                 line += f"{proc['status']:>10} {name_str:<40}"
 
-                attr = curses.color_pair(3) | curses.A_REVERSE if idx + window_start == selected_idx else curses.color_pair(1)
+                # Enhanced color scheme for better visibility
+                if idx + window_start == selected_idx:
+                    attr = curses.color_pair(3) | curses.A_REVERSE
+                else:
+                    attr = curses.color_pair(2)
+                    if proc['cpu_percent'] > 50 or proc['memory_percent'] > 50:
+                        attr |= curses.A_BOLD
+
                 self.safe_addstr(start_y + idx + 1, 2, line, attr)
             except (KeyError, ValueError):
                 # Handle missing or invalid process data
