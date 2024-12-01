@@ -1,11 +1,11 @@
 import curses
-from typing import Tuple
+from typing import Dict, List, Tuple, Optional
 
 class UserInterface:
     def __init__(self, stdscr):
         self.stdscr = stdscr
-        self.header_height = 2
-        self.status_height = 1
+        self.header_height = 1
+        self.status_height = 2
         self.help_height = 1
         self.min_width = 80
         self.min_height = 15
@@ -13,63 +13,91 @@ class UserInterface:
         self.compact_mode = False
         self.graph_height = 10  # Height of each resource graph
         self.graph_width = 60   # Width of resource graphs
+        self.min_graph_height = 5  # Minimum height for graphs
+        self.min_graph_width = 20  # Minimum width for graphs
 
     def check_terminal_size(self) -> Tuple[bool, str, bool]:
         """Check if terminal size is adequate and determine display mode"""
         height, width = self.stdscr.getmaxyx()
-        debug_info = f"Terminal size: {width}x{height}"
+        debug_msg = f"Terminal size: {width}x{height}"
         
-        if height < 10 or width < 40:  # Absolute minimum requirements
-            return False, f"Terminal too small. Minimum size: 40x10, Current: {width}x{height}", False
-            
-        if height < self.min_height or width < self.min_width:
-            self.compact_mode = True
-            return True, f"Running in compact mode. {debug_info}", True
-            
-        self.compact_mode = False
-        return True, debug_info, False
+        if width < self.min_width or height < self.min_height:
+            return False, f"Terminal too small. Minimum size required: {self.min_width}x{self.min_height}", False
+        
+        is_compact = height < 30 or width < 100
+        return True, debug_msg, is_compact
 
-    def safe_addstr(self, y: int, x: int, text: str, attr=0):
-        """Safely add string to screen with bounds checking"""
-        height, width = self.stdscr.getmaxyx()
-        if y < 0 or y >= height:
-            return
-        if x < 0:
-            return
-        
-        # Truncate string if it would exceed screen width
-        max_length = width - x
-        if max_length <= 0:
-            return
-            
+    def safe_addstr(self, y: int, x: int, text: str, attr: int = 0) -> bool:
+        """Safely add string to screen, handling boundary conditions"""
         try:
-            if len(text) > max_length:
-                text = text[:max_length-3] + "..."
-            self.stdscr.addstr(y, x, text, attr)
+            height, width = self.stdscr.getmaxyx()
+            if 0 <= y < height and 0 <= x < width:
+                # Truncate string if it would exceed screen width
+                max_length = width - x
+                if max_length > 0:
+                    self.stdscr.addstr(y, x, text[:max_length], attr)
+                    return True
         except curses.error:
             pass
+        return False
 
-    def draw_header(self, width):
+    def draw_resource_graphs(self, resource_history, start_y: int) -> int:
+        """Draw CPU and Memory usage graphs with fallback displays"""
         try:
-            header = "Process Viewer"
-            # Make sure width is within bounds
-            if width <= 0:
-                return
+            height, width = self.stdscr.getmaxyx()
             
-            # Draw header border and title
-            self.safe_addstr(0, 0, "═" * min(width, self.stdscr.getmaxyx()[1]), curses.color_pair(1))
-            self.safe_addstr(1, 2, f"{header:^{width-4}}", curses.color_pair(2) | curses.A_BOLD)
-            self.safe_addstr(2, 0, "═" * min(width, self.stdscr.getmaxyx()[1]), curses.color_pair(1))
+            # Adjust graph dimensions based on terminal size
+            available_width = width - 8  # Leave margin for labels
+            available_height = height - start_y - self.status_height - self.help_height
+            
+            # Calculate actual graph dimensions
+            actual_width = max(self.min_graph_width, min(self.graph_width, available_width))
+            actual_height = max(self.min_graph_height, min(self.graph_height, (available_height - 2) // 2))
+            
+            # Skip drawing graphs if terminal is too small
+            if available_width < self.min_graph_width or available_height < (self.min_graph_height * 2 + 2):
+                self.safe_addstr(start_y, 2, "Terminal too small for graphs", curses.color_pair(3))
+                return start_y + 1
+            
+            try:
+                # Draw CPU graph
+                cpu_graph = resource_history.get_cpu_graph(actual_width, actual_height)
+                for i, line in enumerate(cpu_graph):
+                    self.safe_addstr(start_y + i, 2, line, curses.color_pair(1))
+                
+                # Draw Memory graph below CPU graph
+                start_y += actual_height + 1
+                mem_graph = resource_history.get_memory_graph(actual_width, actual_height)
+                for i, line in enumerate(mem_graph):
+                    self.safe_addstr(start_y + i, 2, line, curses.color_pair(1))
+                
+                return start_y + actual_height + 1
+                
+            except Exception as e:
+                # Fallback display if graph generation fails
+                self.safe_addstr(start_y, 2, "Error drawing resource graphs", curses.color_pair(4))
+                return start_y + 1
+                
         except curses.error:
+            return start_y
+
+    def draw_header(self, width: int):
+        """Draw application header"""
+        header = "Process Monitor"
+        self.safe_addstr(0, (width - len(header)) // 2, header, curses.color_pair(2) | curses.A_BOLD)
+
+    def draw_process_list(self, processes: List[Dict], selected_idx: int, max_height: int, tree_view: bool):
+        """Draw process list with tree view support"""
+        if not processes:
+            self.safe_addstr(self.header_height + 1, 2, "No processes found", curses.color_pair(3))
             return
 
-    def draw_process_list(self, processes, selected_idx, max_rows, tree_view=True):
         if self.compact_mode:
             start_y = 1  # Reduce header space in compact mode
-            list_height = max_rows - 3  # Leave minimal space for status and help
+            list_height = max_height - 3  # Leave minimal space for status and help
         else:
             start_y = self.header_height + 1
-            list_height = max_rows - self.header_height - self.status_height - self.help_height - 2
+            list_height = max_height - self.header_height - self.status_height - self.help_height - 2
             
         tree_prefix = "  " if not tree_view else "├─ "
         
@@ -83,7 +111,7 @@ class UserInterface:
 
         # Draw processes
         for idx, proc in enumerate(visible_processes):
-            if start_y + idx + 1 >= max_rows - 2:  # Leave space for status and help
+            if start_y + idx + 1 >= max_height - 2:  # Leave space for status and help
                 break
 
             try:
@@ -236,30 +264,5 @@ class UserInterface:
         # Draw message
         message = f"Terminate process {pid}?"
         self.safe_addstr(start_y + 1, start_x + (dialog_width - len(message)) // 2, message, curses.color_pair(4) | curses.A_BOLD)
-
-    def draw_resource_graphs(self, resource_history, start_y):
-        """Draw CPU and Memory usage graphs"""
-        try:
-            height, width = self.stdscr.getmaxyx()
-            
-            # Skip drawing graphs if terminal is too small
-            if width < self.graph_width + 10 or height < start_y + (self.graph_height * 2) + 2:
-                return start_y
-            
-            # Draw CPU graph
-            cpu_graph = resource_history.get_cpu_graph(self.graph_width, self.graph_height)
-            for i, line in enumerate(cpu_graph):
-                self.safe_addstr(start_y + i, 2, line, curses.color_pair(1))
-            
-            # Draw Memory graph below CPU graph
-            start_y += self.graph_height + 1
-            mem_graph = resource_history.get_memory_graph(self.graph_width, self.graph_height)
-            for i, line in enumerate(mem_graph):
-                self.safe_addstr(start_y + i, 2, line, curses.color_pair(1))
-            
-            return start_y + self.graph_height + 1
-            
-        except curses.error:
-            return start_y
         confirm_text = "Press 'y' to confirm, 'n' to cancel"
         self.safe_addstr(start_y + 3, start_x + (dialog_width - len(confirm_text)) // 2, confirm_text, curses.color_pair(1))

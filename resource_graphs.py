@@ -5,20 +5,28 @@ from typing import List, Tuple
 
 class ResourceHistory:
     def __init__(self, max_points=60):
-        self.max_points = max_points
+        self.max_points = max(1, max_points)  # Ensure at least 1 point
         self.cpu_history = deque(maxlen=max_points)
         self.memory_history = deque(maxlen=max_points)
         self.timestamps = deque(maxlen=max_points)
         
     def update(self):
         """Update resource history with current values"""
-        cpu = psutil.cpu_percent(interval=0)
-        memory = psutil.virtual_memory().percent
-        timestamp = datetime.now()
-        
-        self.cpu_history.append(cpu)
-        self.memory_history.append(memory)
-        self.timestamps.append(timestamp)
+        try:
+            cpu = psutil.cpu_percent(interval=0)
+            memory = psutil.virtual_memory().percent
+            timestamp = datetime.now()
+            
+            # Ensure values are within valid range
+            cpu = max(0, min(100, cpu))
+            memory = max(0, min(100, memory))
+            
+            self.cpu_history.append(cpu)
+            self.memory_history.append(memory)
+            self.timestamps.append(timestamp)
+            return True
+        except Exception:
+            return False
 
     def get_cpu_graph(self, width: int, height: int) -> List[str]:
         """Generate ASCII graph for CPU usage"""
@@ -30,42 +38,63 @@ class ResourceHistory:
 
     def _generate_graph(self, data: List[float], width: int, height: int, title: str) -> List[str]:
         """Generate ASCII graph from data points"""
-        if not data:
-            return [" " * width] * height
-
-        # Calculate graph dimensions
-        graph_height = height - 2  # Reserve space for title and labels
-        graph_width = width - 6    # Reserve space for y-axis labels
-
-        # Scale data to graph height
-        max_value = max(data + [100])  # Include 100 to maintain scale
-        min_value = min(data + [0])    # Include 0 to maintain scale
-        scale = graph_height / (max_value - min_value) if max_value > min_value else 1
-
-        # Generate graph lines
-        lines = []
+        # Ensure positive dimensions
+        width = max(10, width)
+        height = max(3, height)  # Minimum height for title and axis
         
-        # Add title
-        lines.append(f"{title:^{width}}")
+        # Handle empty data case
+        if not data:
+            empty_graph = [" " * width for _ in range(height)]
+            empty_graph[0] = f"{title} (No data)".center(width)
+            return empty_graph
 
-        # Generate graph body
-        for y in range(graph_height):
-            value = max_value - (y / scale)
-            line = f"{value:4.0f}│"
+        try:
+            # Calculate graph dimensions
+            graph_height = max(1, height - 2)  # Reserve space for title and labels
+            graph_width = max(4, width - 6)    # Reserve space for y-axis labels
+
+            # Scale data to graph height with error handling
+            max_value = max(data + [100])  # Include 100 to maintain scale
+            min_value = min(data + [0])    # Include 0 to maintain scale
+            value_range = max_value - min_value
+            scale = graph_height / value_range if value_range > 0 else 1
+
+            # Generate graph lines
+            lines = []
             
-            for x in range(min(len(data), graph_width)):
-                data_idx = x - graph_width
-                data_value = data[data_idx]
-                height_at_x = (data_value - min_value) * scale
+            # Add title
+            lines.append(f"{title:^{width}}")
+
+            # Generate graph body
+            for y in range(graph_height):
+                value = max_value - (y / scale) if scale != 0 else 0
+                line = f"{value:4.0f}│"
                 
-                if graph_height - y <= height_at_x:
-                    line += "█"
-                else:
-                    line += " "
+                for x in range(min(len(data), graph_width)):
+                    try:
+                        data_idx = -(graph_width - x)  # Start from the most recent data
+                        if abs(data_idx) <= len(data):
+                            data_value = data[data_idx]
+                            height_at_x = (data_value - min_value) * scale
+                            
+                            if graph_height - y <= height_at_x:
+                                line += "█"
+                            else:
+                                line += " "
+                        else:
+                            line += " "
+                    except IndexError:
+                        line += " "
+                
+                lines.append(line)
+
+            # Add x-axis
+            lines.append("    └" + "─" * graph_width)
+
+            return lines
             
-            lines.append(line)
-
-        # Add x-axis
-        lines.append("    └" + "─" * graph_width)
-
-        return lines
+        except Exception:
+            # Fallback to empty graph on error
+            empty_graph = [" " * width for _ in range(height)]
+            empty_graph[0] = f"{title} (Error)".center(width)
+            return empty_graph

@@ -98,12 +98,20 @@ def main(stdscr):
                 
                 ui.draw_header(max_x)
                 
-                # Update and draw resource graphs
-                resource_history.update()
-                start_y = ui.draw_resource_graphs(resource_history, ui.header_height + 1)
-                
-                # Draw process list below graphs
-                remaining_height = max_y - start_y
+                # Update and draw resource graphs with error handling
+                try:
+                    update_success = resource_history.update()
+                    if not update_success:
+                        ui.safe_addstr(ui.header_height + 1, 2, "Failed to update system resources", curses.color_pair(4))
+                        start_y = ui.header_height + 2
+                    else:
+                        start_y = ui.draw_resource_graphs(resource_history, ui.header_height + 1)
+                except Exception as e:
+                    ui.safe_addstr(ui.header_height + 1, 2, f"Resource monitoring error: {str(e)}", curses.color_pair(4))
+                    start_y = ui.header_height + 2
+
+                # Ensure minimum space for process list
+                remaining_height = max(5, max_y - start_y)
                 ui.draw_process_list(processes, state['selected_idx'], remaining_height, state['tree_view'])
                 ui.draw_status_bar(max_x, state)
                 ui.draw_help(max_x)
