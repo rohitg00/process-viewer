@@ -71,23 +71,39 @@ def main(stdscr):
             # Get terminal dimensions
             max_y, max_x = stdscr.getmaxyx()
 
-            # Update process list
-            processes = process_manager.get_processes(state['sort_by'], state['tree_view'])
-            processes = process_manager.filter_processes(
-                processes,
-                search_term=state['search_term'],
-                status=state['filters']['status'],
-                min_cpu=state['filters']['min_cpu'],
-                min_memory=state['filters']['min_memory'],
-                user_filter=state['filters']['user_filter']
-            )
-            
-            state['processes'] = processes
-            state['process_count'] = len(processes)
+            # Update process list with error handling
+            try:
+                processes = process_manager.get_processes(state['sort_by'], state['tree_view'])
+                if ui.debug_mode:
+                    print(f"Debug: Retrieved {len(processes)} processes before filtering")
+                
+                processes = process_manager.filter_processes(
+                    processes,
+                    search_term=state['search_term'],
+                    status=state['filters']['status'],
+                    min_cpu=state['filters']['min_cpu'],
+                    min_memory=state['filters']['min_memory'],
+                    user_filter=state['filters']['user_filter']
+                )
+                
+                state['processes'] = processes
+                state['process_count'] = len(processes)
+                
+                if ui.debug_mode:
+                    print(f"Debug: {state['process_count']} processes after filtering")
 
-            # Ensure selected index is within bounds
-            if processes:
-                state['selected_idx'] = max(0, min(state['selected_idx'], len(processes) - 1))
+                # Handle empty process list
+                if not processes:
+                    state['status_message'] = "No processes found matching criteria"
+                    state['selected_idx'] = 0
+                else:
+                    # Ensure selected index is within bounds
+                    state['selected_idx'] = max(0, min(state['selected_idx'], len(processes) - 1))
+            except Exception as e:
+                state['status_message'] = f"Error updating process list: {str(e)}"
+                state['processes'] = []
+                state['process_count'] = 0
+                state['selected_idx'] = 0
 
             # Draw UI with error handling
             try:
@@ -110,8 +126,16 @@ def main(stdscr):
                     ui.safe_addstr(ui.header_height + 1, 2, f"Resource monitoring error: {str(e)}", curses.color_pair(4))
                     start_y = ui.header_height + 2
 
-                # Ensure minimum space for process list
-                remaining_height = max(5, max_y - start_y)
+                # Calculate and verify remaining height for process list
+                min_process_list_height = 5  # Minimum height needed for process list
+                remaining_height = max_y - start_y - ui.status_height - ui.help_height
+                if remaining_height < min_process_list_height:
+                    ui.safe_addstr(start_y, 2, "Warning: Limited space for process list", curses.color_pair(3))
+                    remaining_height = min_process_list_height
+                
+                if ui.debug_mode:
+                    print(f"Debug: Remaining height for process list: {remaining_height}")
+                
                 ui.draw_process_list(processes, state['selected_idx'], remaining_height, state['tree_view'])
                 ui.draw_status_bar(max_x, state)
                 ui.draw_help(max_x)

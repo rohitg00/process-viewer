@@ -89,15 +89,20 @@ class UserInterface:
     def draw_process_list(self, processes: List[Dict], selected_idx: int, max_height: int, tree_view: bool):
         """Draw process list with tree view support"""
         if not processes:
-            self.safe_addstr(self.header_height + 1, 2, "No processes found", curses.color_pair(3))
+            self.safe_addstr(self.header_height + 1, 2, "No processes found (0 processes)", curses.color_pair(3))
             return
 
+        # Debug output for process count
+        process_count = len(processes)
+        self.safe_addstr(self.header_height, 2, f"Total processes: {process_count}", curses.color_pair(1))
+
+        # Calculate proper starting position after resource graphs
         if self.compact_mode:
-            start_y = 1  # Reduce header space in compact mode
-            list_height = max_height - 3  # Leave minimal space for status and help
+            start_y = max_height // 3  # Allocate top third for graphs in compact mode
+            list_height = max_height - start_y - self.status_height - self.help_height
         else:
-            start_y = self.header_height + 1
-            list_height = max_height - self.header_height - self.status_height - self.help_height - 2
+            start_y = self.header_height + self.graph_height * 2 + 3  # Account for both graphs and spacing
+            list_height = max_height - start_y - self.status_height - self.help_height - 2
             
         tree_prefix = "  " if not tree_view else "├─ "
         
