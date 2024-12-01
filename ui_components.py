@@ -38,10 +38,18 @@ class UserInterface:
             pass
 
     def draw_header(self, width):
-        header = "Process Viewer (inspired by k9s)"
-        self.safe_addstr(0, 0, "═" * width, curses.color_pair(1))
-        self.safe_addstr(1, 2, f"{header:^{width-4}}", curses.color_pair(2) | curses.A_BOLD)
-        self.safe_addstr(2, 0, "═" * width, curses.color_pair(1))
+        try:
+            header = "Process Viewer"
+            # Make sure width is within bounds
+            if width <= 0:
+                return
+            
+            # Draw header border and title
+            self.safe_addstr(0, 0, "═" * min(width, self.stdscr.getmaxyx()[1]), curses.color_pair(1))
+            self.safe_addstr(1, 2, f"{header:^{width-4}}", curses.color_pair(2) | curses.A_BOLD)
+            self.safe_addstr(2, 0, "═" * min(width, self.stdscr.getmaxyx()[1]), curses.color_pair(1))
+        except curses.error:
+            return
 
     def draw_process_list(self, processes, selected_idx, max_rows):
         start_y = self.header_height + 1

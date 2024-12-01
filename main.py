@@ -59,12 +59,22 @@ def main(stdscr):
             if processes:
                 selected_idx = max(0, min(selected_idx, len(processes) - 1))
 
-            # Draw UI
-            stdscr.clear()
-            ui.draw_header(max_x)
-            ui.draw_process_list(processes, selected_idx, max_y)
-            ui.draw_status_bar(max_x, sort_by, search_term)
-            ui.draw_help(max_x)
+            # Draw UI with error handling
+            try:
+                stdscr.clear()
+                # Verify terminal size before drawing
+                if max_y < ui.min_height or max_x < ui.min_width:
+                    raise curses.error(f"Terminal too small. Min size: {ui.min_width}x{ui.min_height}")
+                
+                ui.draw_header(max_x)
+                ui.draw_process_list(processes, selected_idx, max_y)
+                ui.draw_status_bar(max_x, sort_by, search_term)
+                ui.draw_help(max_x)
+            except curses.error as e:
+                stdscr.clear()
+                ui.draw_error(f"Display error: {str(e)}")
+                stdscr.refresh()
+                continue
 
             # Handle input
             key = stdscr.getch()
