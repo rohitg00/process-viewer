@@ -11,9 +11,9 @@ class UserInterface:
         self.min_height = 15
         self.debug_mode = False
         self.compact_mode = False
-        self.graph_height = 6   # Height of each resource graph
+        self.graph_height = 4   # Height of each resource graph
         self.graph_width = 60   # Width of resource graphs
-        self.min_graph_height = 4  # Minimum height for graphs
+        self.min_graph_height = 3  # Minimum height for graphs
         self.min_graph_width = 20  # Minimum width for graphs
 
     def check_terminal_size(self) -> Tuple[bool, str, bool]:
@@ -66,7 +66,7 @@ class UserInterface:
                     self.safe_addstr(start_y + i, 2, line, curses.color_pair(1))
                 
                 # Draw Memory graph below CPU graph
-                start_y += actual_height + 1
+                start_y += actual_height
                 mem_graph = resource_history.get_memory_graph(actual_width, actual_height)
                 for i, line in enumerate(mem_graph):
                     self.safe_addstr(start_y + i, 2, line, curses.color_pair(1))

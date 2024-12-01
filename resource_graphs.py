@@ -53,11 +53,14 @@ class ResourceHistory:
             graph_height = max(1, height - 2)  # Reserve space for title and labels
             graph_width = max(4, width - 6)    # Reserve space for y-axis labels
 
-            # Scale data to graph height with error handling
-            max_value = max(data + [100])  # Include 100 to maintain scale
-            min_value = min(data + [0])    # Include 0 to maintain scale
+            # Ensure proper bounds and scaling for percentage values
+            max_value = 100  # Fixed max for percentage values
+            min_value = 0    # Fixed min for percentage values
             value_range = max_value - min_value
-            scale = graph_height / value_range if value_range > 0 else 1
+            scale = (graph_height - 1) / value_range if value_range > 0 else 1
+            
+            # Ensure data points are within valid range
+            data = [max(min_value, min(max_value, d)) for d in data]
 
             # Generate graph lines
             lines = []
