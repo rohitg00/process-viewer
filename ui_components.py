@@ -79,17 +79,73 @@ class UserInterface:
                 # Handle missing or invalid process data
                 self.safe_addstr(start_y + idx + 1, 2, "Error: Unable to display process info", curses.color_pair(4))
 
-    def draw_status_bar(self, width, sort_by, search_term):
+    def draw_status_bar(self, width, state):
         max_y = self.stdscr.getmaxyx()[0]
+        sort_by = state['sort_by']
+        search_term = state['search_term']
+        filters = state['filters']
+        input_mode = state['input_mode']
+        
+        # Build status text
         status = f"Sort: {sort_by.upper()}"
         if search_term:
             status += f" | Search: {search_term}"
+        
+        # Add active filters
+        active_filters = []
+        if filters['status']:
+            active_filters.append(f"Status: {filters['status']}")
+        if filters['min_cpu'] is not None:
+            active_filters.append(f"CPU>={filters['min_cpu']}%")
+        if filters['min_memory'] is not None:
+            active_filters.append(f"Mem>={filters['min_memory']}%")
+        if filters['user_filter']:
+            active_filters.append(f"User: {filters['user_filter']}")
+        
+        if active_filters:
+            status += " | Filters: " + ", ".join(active_filters)
+            
+        # Show current input mode
+        if input_mode != 'normal':
+            mode_text = {
+                'search': 'SEARCH',
+                'filter_menu': 'FILTER MENU',
+                'filter_1': 'ENTER STATUS (r/s/t/z)',
+                'filter_2': 'ENTER CPU THRESHOLD',
+                'filter_3': 'ENTER MEMORY THRESHOLD',
+                'filter_4': 'ENTER USERNAME'
+            }.get(input_mode, input_mode.upper())
+            status += f" | Mode: {mode_text}"
+            
         self.safe_addstr(max_y - 2, 0, f"{status:<{width}}", curses.color_pair(2) | curses.A_BOLD)
 
     def draw_help(self, width):
         max_y = self.stdscr.getmaxyx()[0]
-        help_text = "q:Quit | ↑/↓:Navigate | s:Sort | /:Search | Enter:Details"
+        help_text = "q:Quit | ↑/↓:Navigate | s:Sort | /:Search | f:Filter | c:Clear Filters | Enter:Details"
         self.safe_addstr(max_y - 1, 0, f"{help_text:<{width}}", curses.color_pair(1))
+        
+    def draw_filter_menu(self):
+        """Draw the filter menu when in filter_menu mode"""
+        height, width = self.stdscr.getmaxyx()
+        menu_height = 6
+        menu_width = 40
+        start_y = (height - menu_height) // 2
+        start_x = (width - menu_width) // 2
+        
+        menu_items = [
+            "Filter Menu",
+            "1. Filter by Status (running/sleeping/...)",
+            "2. Filter by CPU Usage",
+            "3. Filter by Memory Usage",
+            "4. Filter by Username",
+            "ESC to cancel, c to clear all filters"
+        ]
+        
+        for i, item in enumerate(menu_items):
+            if i == 0:
+                self.safe_addstr(start_y + i, start_x, item.center(menu_width), curses.color_pair(2) | curses.A_BOLD)
+            else:
+                self.safe_addstr(start_y + i, start_x, item.ljust(menu_width), curses.color_pair(1))
 
     def draw_error(self, message: str):
         """Draw an error message in the center of the screen"""

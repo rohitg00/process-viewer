@@ -28,9 +28,34 @@ class ProcessManager:
 
         return processes
 
-    def filter_processes(self, processes, search_term):
-        return [p for p in processes if search_term.lower() in p['name'].lower() or 
-                str(p['pid']) == search_term]
+    def filter_processes(self, processes, search_term="", status=None, min_cpu=None, min_memory=None, user_filter=None):
+        filtered = processes
+        
+        # Apply text search filter
+        if search_term:
+            filtered = [p for p in filtered if search_term.lower() in p['name'].lower() or 
+                       str(p['pid']) == search_term]
+        
+        # Apply status filter
+        if status:
+            filtered = [p for p in filtered if p['status'] == status]
+        
+        # Apply CPU threshold filter
+        if min_cpu is not None:
+            filtered = [p for p in filtered if p['cpu_percent'] >= min_cpu]
+        
+        # Apply memory threshold filter
+        if min_memory is not None:
+            filtered = [p for p in filtered if p['memory_percent'] >= min_memory]
+        
+        # Apply user filter
+        if user_filter is not None:
+            try:
+                filtered = [p for p in filtered if psutil.Process(p['pid']).username() == user_filter]
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                pass
+        
+        return filtered
 
     def get_process_details(self, pid):
         try:

@@ -21,9 +21,19 @@ def main(stdscr):
     # Initialize components
     process_manager = ProcessManager()
     ui = UserInterface(stdscr)
-    search_term = ""
-    selected_idx = 0
-    sort_by = "cpu"
+    state = {
+        'selected_idx': 0,
+        'search_term': "",
+        'sort_by': "cpu",
+        'input_mode': "normal",
+        'filters': {
+            'status': None,
+            'min_cpu': None,
+            'min_memory': None,
+            'user_filter': None
+        },
+        'process_count': 0
+    }
     running = True
     last_size = stdscr.getmaxyx()
 
@@ -51,13 +61,21 @@ def main(stdscr):
             max_y, max_x = stdscr.getmaxyx()
 
             # Update process list
-            processes = process_manager.get_processes(sort_by)
-            if search_term:
-                processes = process_manager.filter_processes(processes, search_term)
+            processes = process_manager.get_processes(state['sort_by'])
+            processes = process_manager.filter_processes(
+                processes,
+                search_term=state['search_term'],
+                status=state['filters']['status'],
+                min_cpu=state['filters']['min_cpu'],
+                min_memory=state['filters']['min_memory'],
+                user_filter=state['filters']['user_filter']
+            )
+            
+            state['process_count'] = len(processes)
 
             # Ensure selected index is within bounds
             if processes:
-                selected_idx = max(0, min(selected_idx, len(processes) - 1))
+                state['selected_idx'] = max(0, min(state['selected_idx'], len(processes) - 1))
 
             # Draw UI with error handling
             try:
@@ -67,9 +85,14 @@ def main(stdscr):
                     raise curses.error(f"Terminal too small. Min size: {ui.min_width}x{ui.min_height}")
                 
                 ui.draw_header(max_x)
-                ui.draw_process_list(processes, selected_idx, max_y)
-                ui.draw_status_bar(max_x, sort_by, search_term)
+                ui.draw_process_list(processes, state['selected_idx'], max_y)
+                ui.draw_status_bar(max_x, state)
                 ui.draw_help(max_x)
+                
+                # Draw filter menu if in filter menu mode
+                if state['input_mode'] == 'filter_menu':
+                    ui.draw_filter_menu()
+                
             except curses.error as e:
                 stdscr.clear()
                 ui.draw_error(f"Display error: {str(e)}")
@@ -82,11 +105,11 @@ def main(stdscr):
                 if key == curses.KEY_RESIZE:
                     continue
 
-                result = handle_input(key, selected_idx, len(processes), search_term, sort_by)
-                if result is None:
+                new_state = handle_input(key, state)
+                if new_state is None:
                     running = False
                 else:
-                    selected_idx, search_term, sort_by = result
+                    state = new_state
 
             stdscr.refresh()
 
