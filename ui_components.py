@@ -11,6 +11,8 @@ class UserInterface:
         self.min_height = 15
         self.debug_mode = False
         self.compact_mode = False
+        self.graph_height = 10  # Height of each resource graph
+        self.graph_width = 60   # Width of resource graphs
 
     def check_terminal_size(self) -> Tuple[bool, str, bool]:
         """Check if terminal size is adequate and determine display mode"""
@@ -234,5 +236,30 @@ class UserInterface:
         # Draw message
         message = f"Terminate process {pid}?"
         self.safe_addstr(start_y + 1, start_x + (dialog_width - len(message)) // 2, message, curses.color_pair(4) | curses.A_BOLD)
+
+    def draw_resource_graphs(self, resource_history, start_y):
+        """Draw CPU and Memory usage graphs"""
+        try:
+            height, width = self.stdscr.getmaxyx()
+            
+            # Skip drawing graphs if terminal is too small
+            if width < self.graph_width + 10 or height < start_y + (self.graph_height * 2) + 2:
+                return start_y
+            
+            # Draw CPU graph
+            cpu_graph = resource_history.get_cpu_graph(self.graph_width, self.graph_height)
+            for i, line in enumerate(cpu_graph):
+                self.safe_addstr(start_y + i, 2, line, curses.color_pair(1))
+            
+            # Draw Memory graph below CPU graph
+            start_y += self.graph_height + 1
+            mem_graph = resource_history.get_memory_graph(self.graph_width, self.graph_height)
+            for i, line in enumerate(mem_graph):
+                self.safe_addstr(start_y + i, 2, line, curses.color_pair(1))
+            
+            return start_y + self.graph_height + 1
+            
+        except curses.error:
+            return start_y
         confirm_text = "Press 'y' to confirm, 'n' to cancel"
         self.safe_addstr(start_y + 3, start_x + (dialog_width - len(confirm_text)) // 2, confirm_text, curses.color_pair(1))

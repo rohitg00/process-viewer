@@ -4,6 +4,7 @@ import sys
 from process_manager import ProcessManager
 from ui_components import UserInterface
 from keybindings import handle_input
+from resource_graphs import ResourceHistory
 
 def main(stdscr):
     # Initialize curses
@@ -21,6 +22,7 @@ def main(stdscr):
     # Initialize components
     process_manager = ProcessManager()
     ui = UserInterface(stdscr)
+    resource_history = ResourceHistory()
     state = {
         'selected_idx': 0,
         'search_term': "",
@@ -95,7 +97,14 @@ def main(stdscr):
                     raise curses.error(f"Terminal too small. Min size: {ui.min_width}x{ui.min_height}")
                 
                 ui.draw_header(max_x)
-                ui.draw_process_list(processes, state['selected_idx'], max_y, state['tree_view'])
+                
+                # Update and draw resource graphs
+                resource_history.update()
+                start_y = ui.draw_resource_graphs(resource_history, ui.header_height + 1)
+                
+                # Draw process list below graphs
+                remaining_height = max_y - start_y
+                ui.draw_process_list(processes, state['selected_idx'], remaining_height, state['tree_view'])
                 ui.draw_status_bar(max_x, state)
                 ui.draw_help(max_x)
                 
