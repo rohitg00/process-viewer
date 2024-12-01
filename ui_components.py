@@ -84,7 +84,7 @@ class UserInterface:
     def draw_header(self, width: int):
         """Draw application header"""
         header = "Process Monitor"
-        self.safe_addstr(0, (width - len(header)) // 2, header, curses.color_pair(2) | curses.A_BOLD)
+        self.safe_addstr(0, (width - len(header)) // 2, header, curses.color_pair(3) | curses.A_BOLD)
 
     def draw_process_list(self, processes: List[Dict], selected_idx: int, max_height: int, tree_view: bool):
         """Draw process list with tree view support"""
@@ -94,7 +94,7 @@ class UserInterface:
 
         # Debug output for process count
         process_count = len(processes)
-        self.safe_addstr(self.header_height, 2, f"Total processes: {process_count}", curses.color_pair(2))
+        self.safe_addstr(self.header_height, 2, f"Total processes: {process_count}", curses.color_pair(2) | curses.A_BOLD)
 
         # Calculate proper starting position after resource graphs
         if self.compact_mode:
@@ -175,7 +175,7 @@ class UserInterface:
     def draw_help(self, width):
         max_y = self.stdscr.getmaxyx()[0]
         help_text = "q:Quit | ↑/↓:Navigate | s:Sort | /:Search | f:Filter | c:Clear | t:Tree | Enter:Details | x:Terminate"
-        self.safe_addstr(max_y - 1, 0, f"{help_text:<{width}}", curses.color_pair(1))
+        self.safe_addstr(max_y - 1, 0, f"{help_text:<{width}}", curses.color_pair(2))
         
     def draw_filter_menu(self):
         """Draw the filter menu when in filter_menu mode"""
