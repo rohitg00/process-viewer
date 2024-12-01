@@ -133,15 +133,22 @@ def main(stdscr):
                     ui.safe_addstr(ui.header_height + 1, 2, f"Resource monitoring error: {str(e)}", curses.color_pair(4))
                     start_y = ui.header_height + 2
 
-                # Optimize vertical space allocation
-                min_process_list_height = 3
+                # Optimize vertical space allocation with debug output
+                min_process_list_height = 5  # Increased minimum height
                 remaining_height = max_y - start_y - ui.status_height - ui.help_height
+                
+                if ui.debug_mode:
+                    print(f"Debug: max_y={max_y}, start_y={start_y}, remaining_height={remaining_height}")
+                    print(f"Debug: Process count before display: {len(processes)}")
                 
                 # Ensure minimum space for process list
                 if remaining_height < min_process_list_height:
-                    ui.graph_height = max(2, ui.graph_height - (min_process_list_height - remaining_height))
-                    start_y = ui.header_height + (ui.graph_height * 2)  # Recalculate start_y
+                    ui.graph_height = max(3, ui.graph_height - (min_process_list_height - remaining_height))
+                    start_y = ui.header_height + (ui.graph_height * 2) + 2  # Recalculate start_y with spacing
                     remaining_height = max_y - start_y - ui.status_height - ui.help_height
+                    
+                    if ui.debug_mode:
+                        print(f"Debug: Adjusted graph_height={ui.graph_height}, new remaining_height={remaining_height}")
                 
                 ui.draw_process_list(processes, state['selected_idx'], remaining_height, state['tree_view'])
                 ui.draw_status_bar(max_x, state)

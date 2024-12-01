@@ -98,11 +98,15 @@ class UserInterface:
 
         # Calculate proper starting position after resource graphs
         if self.compact_mode:
-            start_y = max_height // 4  # Reduce space allocation for graphs in compact mode
-            list_height = max_height - start_y - self.status_height - self.help_height
+            start_y = self.header_height + self.graph_height + 2  # Fixed position for compact mode
         else:
-            start_y = self.header_height + (self.graph_height * 2)  # Remove extra spacing
-            list_height = max_height - start_y - self.status_height - self.help_height
+            start_y = self.header_height + (self.graph_height * 2) + 2  # Add spacing after graphs
+
+        # Debug output for start_y position
+        if self.debug_mode:
+            self.safe_addstr(0, 0, f"Debug: start_y={start_y}, max_height={max_height}", curses.color_pair(1))
+
+        list_height = max_height - start_y - self.status_height - self.help_height
             
         tree_prefix = "  " if not tree_view else "├─ "
         
