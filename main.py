@@ -127,8 +127,15 @@ def main(stdscr):
                     start_y = ui.header_height + 2
 
                 # Calculate and verify remaining height for process list
-                min_process_list_height = 5  # Minimum height needed for process list
+                min_process_list_height = 3  # Reduced minimum height for process list
                 remaining_height = max_y - start_y - ui.status_height - ui.help_height
+                
+                # Dynamic graph resizing based on available space
+                if remaining_height < min_process_list_height:
+                    # Reduce graph height to make room for process list
+                    ui.graph_height = max(ui.min_graph_height, ui.graph_height - 1)
+                    remaining_height = max_y - start_y - ui.status_height - ui.help_height
+                
                 if remaining_height < min_process_list_height:
                     ui.safe_addstr(start_y, 2, "Warning: Limited space for process list", curses.color_pair(3))
                     remaining_height = min_process_list_height

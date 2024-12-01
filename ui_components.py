@@ -11,9 +11,9 @@ class UserInterface:
         self.min_height = 15
         self.debug_mode = False
         self.compact_mode = False
-        self.graph_height = 10  # Height of each resource graph
+        self.graph_height = 6   # Height of each resource graph
         self.graph_width = 60   # Width of resource graphs
-        self.min_graph_height = 5  # Minimum height for graphs
+        self.min_graph_height = 4  # Minimum height for graphs
         self.min_graph_width = 20  # Minimum width for graphs
 
     def check_terminal_size(self) -> Tuple[bool, str, bool]:
@@ -24,7 +24,7 @@ class UserInterface:
         if width < self.min_width or height < self.min_height:
             return False, f"Terminal too small. Minimum size required: {self.min_width}x{self.min_height}", False
         
-        is_compact = height < 30 or width < 100
+        is_compact = height < 24 or width < 80  # Reduced thresholds for compact mode
         return True, debug_msg, is_compact
 
     def safe_addstr(self, y: int, x: int, text: str, attr: int = 0) -> bool:
