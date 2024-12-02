@@ -10,15 +10,10 @@ class ProcessManager:
         process_dict = {}
         
         try:
-            process_count = len(list(psutil.process_iter()))
-        except Exception as e:
-            return []  # Return empty list if we can't even count processes
-        
-        try:
             for proc in psutil.process_iter(['pid', 'name', 'cpu_percent', 'memory_percent', 'status', 'ppid']):
-            try:
-                pinfo = proc.info
-                pinfo['cpu_percent'] = proc.cpu_percent()
+                try:
+                    pinfo = proc.info
+                    pinfo['cpu_percent'] = proc.cpu_percent()
                 pinfo['memory_percent'] = proc.memory_percent()
                 pinfo['ppid'] = proc.ppid()
                 pinfo['level'] = 0  # Will be set properly if tree_view is enabled

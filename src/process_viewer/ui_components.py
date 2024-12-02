@@ -96,11 +96,8 @@ class UserInterface:
         process_count = len(processes)
         self.safe_addstr(self.header_height, 2, f"Total processes: {process_count}", curses.color_pair(2) | curses.A_BOLD)
 
-        # Calculate proper starting position after resource graphs
-        if self.compact_mode:
-            start_y = self.header_height + self.graph_height + 2  # Fixed position for compact mode
-        else:
-            start_y = self.header_height + (self.graph_height * 2) + 2  # Add spacing after graphs
+        # Fixed starting position after graphs
+        start_y = self.header_height + (self.graph_height * 2) + 3  # Consistent spacing after graphs
 
         # Debug output for start_y position
         if self.debug_mode:
