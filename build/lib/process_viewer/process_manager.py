@@ -32,7 +32,10 @@ class ProcessManager:
                     process_dict[pinfo['pid']] = pinfo
                 except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
                     continue
-        
+        except Exception as e:
+            print(f"Error getting process list: {e}")
+            return []
+
         if tree_view:
             # Build process tree
             for pid, pinfo in process_dict.items():
