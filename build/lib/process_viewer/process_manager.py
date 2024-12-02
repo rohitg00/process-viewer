@@ -2,31 +2,36 @@ import psutil
 from datetime import datetime
 
 class ProcessManager:
+    """
+    Manages system process operations and information retrieval.
+    
+    This class handles all process-related operations including:
+    - Retrieving process information
+    - Building process trees
+    - Filtering processes based on various criteria
+    - Process termination
+    """
+
     def __init__(self):
+        """Initialize the ProcessManager."""
         self.process_list = []
 
     def get_processes(self, sort_by='cpu', tree_view=False):
         processes = []
         process_dict = {}
         
-        print("Debug: Starting process retrieval")
         try:
-            process_count = len(list(psutil.process_iter()))
-            print(f"Debug: Total system processes: {process_count}")
-        except Exception as e:
-            print(f"Debug: Error counting processes: {e}")
-        
-        for proc in psutil.process_iter(['pid', 'name', 'cpu_percent', 'memory_percent', 'status', 'ppid']):
-            try:
-                pinfo = proc.info
-                pinfo['cpu_percent'] = proc.cpu_percent()
-                pinfo['memory_percent'] = proc.memory_percent()
-                pinfo['ppid'] = proc.ppid()
-                pinfo['level'] = 0  # Will be set properly if tree_view is enabled
-                pinfo['children'] = []
-                process_dict[pinfo['pid']] = pinfo
-            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
-                continue
+            for proc in psutil.process_iter(['pid', 'name', 'cpu_percent', 'memory_percent', 'status', 'ppid']):
+                try:
+                    pinfo = proc.info
+                    pinfo['cpu_percent'] = proc.cpu_percent()
+                    pinfo['memory_percent'] = proc.memory_percent()
+                    pinfo['ppid'] = proc.ppid()
+                    pinfo['level'] = 0  # Will be set properly if tree_view is enabled
+                    pinfo['children'] = []
+                    process_dict[pinfo['pid']] = pinfo
+                except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                    continue
         
         if tree_view:
             # Build process tree

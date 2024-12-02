@@ -1,23 +1,48 @@
 #!/usr/bin/env python3
+"""
+Process Viewer - A terminal-based system process monitoring tool
+
+This is the main entry point for the Process Viewer application. It handles the
+initialization of the curses interface, manages the application state, and
+coordinates the interaction between different components.
+
+The application provides real-time monitoring of system processes with features like:
+- Process list with CPU/Memory usage
+- Resource usage graphs
+- Process tree view
+- Interactive filtering and sorting
+- Process management capabilities
+"""
+
 import curses
 import sys
-from process_manager import ProcessManager
-from ui_components import UserInterface
-from keybindings import handle_input
-from resource_graphs import ResourceHistory
+from process_viewer.process_manager import ProcessManager
+from process_viewer.ui_components import UserInterface
+from process_viewer.keybindings import handle_input
+from process_viewer.resource_graphs import ResourceHistory
 
 def main(stdscr):
-    # Initialize curses
+    """
+    Main application loop handling the curses interface and application state
+
+    Args:
+        stdscr: The main curses window object
+
+    The function initializes the curses interface, sets up the color scheme,
+    manages the application state, and handles the main event loop for user
+    interaction and display updates.
+    """
+    # Initialize curses interface and configure settings
     curses.start_color()
     curses.use_default_colors()
     curses.curs_set(0)
     stdscr.timeout(1000)  # Set input timeout for updates
 
     # Initialize color pairs for enhanced purple theme
-    curses.init_pair(1, 54, -1)      # Dark purple for borders and frames
-    curses.init_pair(2, 147, -1)     # Medium purple for process list
-    curses.init_pair(3, 213, -1)     # Light purple for highlights
-    curses.init_pair(4, 55, -1)      # Darker purple for graphs
+    curses.init_pair(1, 92, -1)      # Light purple for borders
+    curses.init_pair(2, 99, -1)      # Bright purple for process list
+    curses.init_pair(3, 141, -1)     # Vivid purple for highlights
+    curses.init_pair(4, 97, -1)      # Medium purple for graphs
     
     # Try to set background color if supported
     try:
@@ -184,9 +209,13 @@ def main(stdscr):
             stdscr.refresh()
             continue
 
+def run():
+    """Entry point for the process viewer application"""
+    return curses.wrapper(main)
+
 if __name__ == "__main__":
     try:
-        curses.wrapper(main)
+        sys.exit(run())
     except KeyboardInterrupt:
         sys.exit(0)
     except Exception as e:

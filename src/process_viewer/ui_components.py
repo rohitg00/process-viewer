@@ -97,7 +97,7 @@ class UserInterface:
         self.safe_addstr(self.header_height, 2, f"Total processes: {process_count}", curses.color_pair(2) | curses.A_BOLD)
 
         # Fixed starting position after graphs
-        start_y = self.header_height + (self.graph_height * 2) + 3  # Consistent spacing after graphs
+        start_y = self.header_height + (self.graph_height * 2) + 2  # Consistent spacing after graphs
 
         # Debug output for start_y position
         if self.debug_mode:

@@ -1,7 +1,2 @@
 psutil>=6.1.0
 curses-menu>=0.7.0
-build>=1.2.2.post1
-wheel>=0.45.1
-twine>=6.0.1
-pip>=24.3.1
-setuptools>=61.0

@@ -96,11 +96,8 @@ class UserInterface:
         process_count = len(processes)
         self.safe_addstr(self.header_height, 2, f"Total processes: {process_count}", curses.color_pair(2) | curses.A_BOLD)
 
-        # Calculate proper starting position after resource graphs
-        if self.compact_mode:
-            start_y = self.header_height + self.graph_height + 2  # Fixed position for compact mode
-        else:
-            start_y = self.header_height + (self.graph_height * 2) + 2  # Add spacing after graphs
+        # Fixed starting position after graphs
+        start_y = self.header_height + (self.graph_height * 2) + 2  # Consistent spacing after graphs
 
         # Debug output for start_y position
         if self.debug_mode:
@@ -114,9 +111,22 @@ class UserInterface:
         window_start = max(0, min(selected_idx - list_height // 2, len(processes) - list_height))
         visible_processes = processes[window_start:window_start + list_height]
 
+        # Draw process list border
+        height, width = self.stdscr.getmaxyx()
+        list_width = width - 4  # Leave 2 chars padding on each side
+        
+        # Draw top border
+        self.safe_addstr(start_y, 1, "┌" + "─" * (list_width - 2) + "┐", curses.color_pair(1))
+        
         # Draw column headers
         headers = f"{'PID':>8} {'CPU%':>7} {'MEM%':>7} {'STATUS':>10} {'NAME':<20}"
-        self.safe_addstr(start_y, 2, headers, curses.color_pair(1) | curses.A_BOLD)
+        self.safe_addstr(start_y + 1, 2, headers, curses.color_pair(1) | curses.A_BOLD)
+        
+        # Draw header separator
+        self.safe_addstr(start_y + 2, 1, "├" + "─" * (list_width - 2) + "┤", curses.color_pair(1))
+
+        # Adjust start_y for content
+        start_y += 3
 
         # Draw processes with enhanced visual style
         for idx, proc in enumerate(visible_processes):
@@ -140,10 +150,17 @@ class UserInterface:
                     if proc['cpu_percent'] > 50 or proc['memory_percent'] > 50:
                         attr |= curses.A_BOLD
 
-                self.safe_addstr(start_y + idx + 1, 2, line, attr)
+                # Draw side borders
+                self.safe_addstr(start_y + idx, 1, "│", curses.color_pair(1))
+                self.safe_addstr(start_y + idx, width - 2, "│", curses.color_pair(1))
+                # Draw process info
+                self.safe_addstr(start_y + idx, 2, line, attr)
             except (KeyError, ValueError):
                 # Handle missing or invalid process data
-                self.safe_addstr(start_y + idx + 1, 2, "Error: Unable to display process info", curses.color_pair(4))
+                self.safe_addstr(start_y + idx, 2, "Error: Unable to display process info", curses.color_pair(4))
+            
+        # Draw bottom border
+        self.safe_addstr(start_y + len(visible_processes), 1, "└" + "─" * (list_width - 2) + "┘", curses.color_pair(1))
 
     def draw_status_bar(self, width, state):
         max_y = self.stdscr.getmaxyx()[0]

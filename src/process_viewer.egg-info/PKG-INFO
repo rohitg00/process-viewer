@@ -1,7 +1,7 @@
 Metadata-Version: 2.1
 Name: process-viewer
 Version: 0.1.0
-Summary: A terminal-based process visualization tool providing real-time system process monitoring and management capabilities. Features comprehensive process monitoring with detailed metrics, interactive filtering, and search functionality in an adaptive terminal interface.
+Summary: A terminal-based process visualization tool providing real-time system process monitoring and management capabilities.
 Author-email: Rohit Ghumare <ghumare64@gmail.com>
 License: MIT
 Project-URL: Homepage, https://github.com/rohitghumare/process-viewer
@@ -10,11 +10,6 @@ Description-Content-Type: text/markdown
 License-File: LICENSE
 Requires-Dist: psutil>=6.1.0
 Requires-Dist: curses-menu>=0.7.0
-Requires-Dist: build>=1.2.2.post1
-Requires-Dist: wheel>=0.45.1
-Requires-Dist: twine>=6.0.1
-Requires-Dist: pip>=24.3.1
-Requires-Dist: setuptools>=61.0
 
 # Process Viewer
 

@@ -15,8 +15,80 @@ author = "agent"
 task = "workflow.run"
 args = "Process Viewer"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Build Package"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Process Viewer Build"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Install Package"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Test Package"
+
 [[workflows.workflow]]
 name = "Process Viewer"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python3 -m pip install -e ."
+
+[[workflows.workflow]]
+name = "Build Package"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python3 setup.py sdist bdist_wheel"
+
+[[workflows.workflow]]
+name = "Process Viewer Build"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python3 setup.py sdist bdist_wheel && pip install --no-user dist/*.whl"
+
+[[workflows.workflow]]
+name = "Install Package"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pip install --no-deps -e ."
+
+[[workflows.workflow]]
+name = "Test Package"
 author = "agent"
 
 [workflows.workflow.metadata]
@@ -30,4 +102,4 @@ task = "shell.exec"
 args = "process-viewer"
 
 [deployment]
-run = ["sh", "-c", "process-viewer"]
+run = ["sh", "-c", "python3 -m pip install -e ."]

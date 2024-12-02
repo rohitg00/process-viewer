@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "process-viewer"
 version = "0.1.0"
-description = "A terminal-based process visualization tool providing real-time system process monitoring and management capabilities. Features comprehensive process monitoring with detailed metrics, interactive filtering, and search functionality in an adaptive terminal interface."
+description = "A terminal-based process visualization tool providing real-time system process monitoring and management capabilities."
 readme = "README.md"
 authors = [
     { name = "Rohit Ghumare", email = "ghumare64@gmail.com" }
@@ -15,11 +15,6 @@ requires-python = ">=3.11"
 dependencies = [
     "psutil>=6.1.0",
     "curses-menu>=0.7.0",
-    "build>=1.2.2.post1",
-    "wheel>=0.45.1",
-    "twine>=6.0.1",
-    "pip>=24.3.1",
-    "setuptools>=61.0",
 ]
 
 [project.scripts]

@@ -25,14 +25,17 @@ class ProcessManager:
                 try:
                     pinfo = proc.info
                     pinfo['cpu_percent'] = proc.cpu_percent()
-                pinfo['memory_percent'] = proc.memory_percent()
-                pinfo['ppid'] = proc.ppid()
-                pinfo['level'] = 0  # Will be set properly if tree_view is enabled
-                pinfo['children'] = []
-                process_dict[pinfo['pid']] = pinfo
-            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
-                continue
-        
+                    pinfo['memory_percent'] = proc.memory_percent()
+                    pinfo['ppid'] = proc.ppid()
+                    pinfo['level'] = 0  # Will be set properly if tree_view is enabled
+                    pinfo['children'] = []
+                    process_dict[pinfo['pid']] = pinfo
+                except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                    continue
+        except Exception as e:
+            print(f"Error getting process list: {e}")
+            return []
+
         if tree_view:
             # Build process tree
             for pid, pinfo in process_dict.items():

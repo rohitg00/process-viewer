@@ -2,6 +2,7 @@ LICENSE
 MANIFEST.in
 README.md
 pyproject.toml
+setup.py
 src/process_viewer/__init__.py
 src/process_viewer/keybindings.py
 src/process_viewer/main.py
