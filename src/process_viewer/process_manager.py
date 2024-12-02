@@ -9,14 +9,13 @@ class ProcessManager:
         processes = []
         process_dict = {}
         
-        print("Debug: Starting process retrieval")
         try:
             process_count = len(list(psutil.process_iter()))
-            print(f"Debug: Total system processes: {process_count}")
         except Exception as e:
-            print(f"Debug: Error counting processes: {e}")
+            return []  # Return empty list if we can't even count processes
         
-        for proc in psutil.process_iter(['pid', 'name', 'cpu_percent', 'memory_percent', 'status', 'ppid']):
+        try:
+            for proc in psutil.process_iter(['pid', 'name', 'cpu_percent', 'memory_percent', 'status', 'ppid']):
             try:
                 pinfo = proc.info
                 pinfo['cpu_percent'] = proc.cpu_percent()

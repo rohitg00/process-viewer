@@ -14,10 +14,10 @@ def main(stdscr):
     stdscr.timeout(1000)  # Set input timeout for updates
 
     # Initialize color pairs for enhanced purple theme
-    curses.init_pair(1, 54, -1)      # Dark purple for borders and frames
-    curses.init_pair(2, 147, -1)     # Medium purple for process list
-    curses.init_pair(3, 213, -1)     # Light purple for highlights
-    curses.init_pair(4, 55, -1)      # Darker purple for graphs
+    curses.init_pair(1, 92, -1)      # Light purple for borders and frames
+    curses.init_pair(2, 99, -1)      # Brighter purple for process list
+    curses.init_pair(3, 141, -1)     # Vivid purple for highlights
+    curses.init_pair(4, 97, -1)      # Medium purple for graphs
     
     # Try to set background color if supported
     try:
