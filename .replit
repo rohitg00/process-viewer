@@ -27,7 +27,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "python main.py"
+args = "process-viewer"
 
 [deployment]
-run = ["sh", "-c", "python main.py"]
+run = ["sh", "-c", "process-viewer"]

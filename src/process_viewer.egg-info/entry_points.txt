@@ -1,0 +1,2 @@
+[console_scripts]
+process-viewer = process_viewer.main:run
