@@ -1,4 +1,19 @@
 #!/usr/bin/env python3
+"""
+Process Viewer - A terminal-based system process monitoring tool
+
+This is the main entry point for the Process Viewer application. It handles the
+initialization of the curses interface, manages the application state, and
+coordinates the interaction between different components.
+
+The application provides real-time monitoring of system processes with features like:
+- Process list with CPU/Memory usage
+- Resource usage graphs
+- Process tree view
+- Interactive filtering and sorting
+- Process management capabilities
+"""
+
 import curses
 import sys
 from process_viewer.process_manager import ProcessManager
@@ -7,7 +22,17 @@ from process_viewer.keybindings import handle_input
 from process_viewer.resource_graphs import ResourceHistory
 
 def main(stdscr):
-    # Initialize curses
+    """
+    Main application loop handling the curses interface and application state
+
+    Args:
+        stdscr: The main curses window object
+
+    The function initializes the curses interface, sets up the color scheme,
+    manages the application state, and handles the main event loop for user
+    interaction and display updates.
+    """
+    # Initialize curses interface and configure settings
     curses.start_color()
     curses.use_default_colors()
     curses.curs_set(0)

@@ -2,7 +2,18 @@ import psutil
 from datetime import datetime
 
 class ProcessManager:
+    """
+    Manages system process operations and information retrieval.
+    
+    This class handles all process-related operations including:
+    - Retrieving process information
+    - Building process trees
+    - Filtering processes based on various criteria
+    - Process termination
+    """
+
     def __init__(self):
+        """Initialize the ProcessManager."""
         self.process_list = []
 
     def get_processes(self, sort_by='cpu', tree_view=False):
