@@ -1,0 +1,2 @@
+psutil>=6.1.0
+curses-menu>=0.7.0

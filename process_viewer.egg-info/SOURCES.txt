@@ -1,0 +1,16 @@
+MANIFEST.in
+README.md
+keybindings.py
+main.py
+process_manager.py
+pyproject.toml
+resource_graphs.py
+setup.py
+ui_components.py
+utils.py
+process_viewer.egg-info/PKG-INFO
+process_viewer.egg-info/SOURCES.txt
+process_viewer.egg-info/dependency_links.txt
+process_viewer.egg-info/entry_points.txt
+process_viewer.egg-info/requires.txt
+process_viewer.egg-info/top_level.txt

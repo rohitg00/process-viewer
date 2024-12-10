@@ -1,0 +1,94 @@
+Metadata-Version: 2.1
+Name: process-viewer
+Version: 0.1.0
+Summary: A terminal-based process visualization tool providing real-time system process monitoring and management capabilities.
+Home-page: https://github.com/rohitg00/process-viewer
+Author: Rohit Ghumare
+Author-email: Rohit Ghumare <ghumare64@gmail.com>
+License: MIT
+Project-URL: Homepage, https://github.com/rohitg00/process-viewer
+Project-URL: Repository, https://github.com/rohitg00/process-viewer
+Project-URL: Issues, https://github.com/rohitg00/process-viewer/issues
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: psutil>=6.1.0
+Requires-Dist: curses-menu>=0.7.0
+Requires-Dist: wheel>=0.45.1
+Requires-Dist: setuptools>=75.6.0
+Requires-Dist: build>=1.2.2.post1
+Requires-Dist: twine>=6.0.1
+
+# Process Viewer
+
+A terminal-based process visualization tool providing real-time system process monitoring and management capabilities.
+
+## Features
+
+- Real-time process monitoring with CPU/Memory usage graphs
+- Process tree visualization with parent-child relationships
+- Multi-criteria sorting (CPU, Memory, PID, Name)
+- Process filtering by status, CPU/Memory thresholds, and username
+- Interactive search functionality
+- Dynamic terminal size adaptation
+- ASCII-based resource utilization graphs
+- Auto-scaling graph displays
+
+## Requirements
+
+- Python 3.11 or higher
+- psutil >= 6.1.0
+- curses-menu >= 0.7.0
+
+## Installation
+
+```bash
+pip install process-viewer
+```
+
+## Usage
+
+After installation, you can run the process viewer using:
+
+```bash
+process-viewer
+```
+
+Or run directly from the source:
+
+```bash
+python main.py
+```
+
+## Keyboard Shortcuts
+
+- `↑/↓`: Navigate through processes
+- `s`: Toggle sort mode (CPU/Memory/PID/Name)
+- `/`: Enter search mode
+- `f`: Open filter menu
+- `c`: Clear all filters
+- `t`: Toggle tree/flat view
+- `Enter`: View process details
+- `x`: Terminate selected process
+- `q`: Quit application
+
+## Filter Menu Options
+
+1. Filter by Status (r: running, s: sleeping, t: stopped, z: zombie)
+2. Filter by CPU Usage threshold
+3. Filter by Memory Usage threshold
+4. Filter by Username
+
+## Development
+
+To set up the development environment:
+
+1. Clone the repository
+2. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+## License
+
+This project is open-source and available under the MIT License.
